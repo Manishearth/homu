@@ -190,7 +190,7 @@ def parse_commands(body, username, repo_cfg, state, my_username, db, *, realtime
                     state.add_comment(':scream_cat: {} Please try again with `{:.7}`.'.format(msg, state.head_sha))
                 else:
                     assert sha_or_blank(state.head_sha)
-                    state.add_comment('~~[]() @{} r={} {:.7} []()~~'.format(my_username, approver, state.head_sha))
+                    state.add_comment('> :8ball: @{} r={} {:.7}'.format(my_username, approver, state.head_sha))
 
         elif word == 'r-':
             state.approved_by = ''
