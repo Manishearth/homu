@@ -55,6 +55,8 @@ class PullReqState:
     head_ref = ''
     base_ref = ''
     assignee = ''
+    _approved_by = ''
+    last_approved_by = ''
 
     def __init__(self, num, head_sha, status, db, repo_label, mergeable_que, gh, owner, name, repos):
         self.head_advanced('', use_db=False)
@@ -69,6 +71,16 @@ class PullReqState:
         self.owner = owner
         self.name = name
         self.repos = repos
+
+    @property
+    def approved_by(self):
+        return self._approved_by
+
+    @approved_by.setter
+    def approved_by(self, new_val):
+        self._approved_by = new_val
+        if new_val != ''
+            self.last_approved_by = self._approved_by
 
     def head_advanced(self, head_sha, *, use_db=True):
         self.head_sha = head_sha
@@ -223,8 +235,8 @@ def parse_commands(body, username, repo_cfg, state, my_username, db, *, realtime
     for i, word in reversed(list(enumerate(words))):
         found = True
 
-        if word == 'r+' or word.startswith('r='):
-            if try_only:
+        if word == 'r+' or word.startswith('r=') or word == 'review-carry':
+            if try_only and not word == 'review-carry':
                 state.add_comment(':key: Insufficient privileges')
                 continue
 
@@ -234,6 +246,12 @@ def parse_commands(body, username, repo_cfg, state, my_username, db, *, realtime
                 cur_sha = sha
 
             approver = word[len('r='):] if word.startswith('r=') else username
+
+            if word == 'review-carry' and state.last_approved_by != '':
+                approver = state.last_approved_by
+            else if state.last_approved_by == '':
+                state.add_comment(':key: No previous reviewer')
+                continue               
 
             # Ignore "r=me"
             if approver == 'me':
